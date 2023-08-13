@@ -6,14 +6,11 @@ from pytest_django.asserts import assertRedirects
 import pytest
 
 @pytest.mark.parametrize(
-    'name',  # Имя параметра функции.
-    # Значения, которые будут передаваться в name.
+    'name',
     ('notes:home', 'users:login', 'users:logout', 'users:signup')
 )
-
-# Указываем в фикстурах встроенный клиент.
 def test_home_availability_for_anonymous_user(client, name):
-    # Адрес страницы получаем через reverse():
+    '''Првоерка доступа не авторизованного пользователя'''
     url = reverse(name)
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
@@ -24,6 +21,7 @@ def test_home_availability_for_anonymous_user(client, name):
     ('notes:list', 'notes:add', 'notes:success')
 )
 def test_pages_availability_for_auth_user(admin_client, name):
+    '''Досту аутетифицированного пользователя'''
     url = reverse(name)
     response = admin_client.get(url)
     assert response.status_code == HTTPStatus.OK
@@ -31,8 +29,6 @@ def test_pages_availability_for_auth_user(admin_client, name):
 
 @pytest.mark.parametrize(
     'parametrized_client, expected_status',
-    # Предварительно оборачиваем имена фикстур 
-    # в вызов функции pytest.lazy_fixture().
     (
         (pytest.lazy_fixture('admin_client'), HTTPStatus.NOT_FOUND),
         (pytest.lazy_fixture('author_client'), HTTPStatus.OK)
@@ -64,9 +60,11 @@ def test_pages_availability_for_different_users(
 )
 # Передаём в тест анонимный клиент, name проверяемых страниц и args:
 def test_redirects(client, name, args):
+    '''Проверка редиректа'''
     login_url = reverse('users:login')
     # Теперь не надо писать никаких if и можно обойтись одним выражением.
     url = reverse(name, args=args)
     expected_url = f'{login_url}?next={url}'
     response = client.get(url)
     assertRedirects(response, expected_url)
+    
